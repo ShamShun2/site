@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Админ-панель — NurAI</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --p:#FF6B35;--pd:#E55B28;--bg:#F3F4F6;--surface:#fff;
+  --text:#1F2937;--muted:#6B7280;--border:#E5E7EB;
+  --success:#10B981;--danger:#EF4444;--warning:#F59E0B;
+  --font:'Nunito',system-ui,sans-serif;
+  --shadow:0 2px 16px rgba(0,0,0,0.07);
+  --radius:14px;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh}
+
+/* LOGIN */
+#login-screen{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#FF6B35,#FFD54F);padding:20px;
+}
+.login-card{
+  background:white;border-radius:24px;padding:48px 40px;
+  width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,0.15);
+  text-align:center;
+}
+.login-logo{font-size:52px;margin-bottom:16px}
+.login-title{font-size:26px;font-weight:900;color:var(--text);margin-bottom:6px}
+.login-sub{font-size:14px;color:var(--muted);margin-bottom:32px}
+.login-inp{
+  width:100%;padding:14px 18px;border:2px solid var(--border);
+  border-radius:12px;font-size:16px;font-family:var(--font);
+  outline:none;transition:border-color .2s;margin-bottom:16px;display:block;
+}
+.login-inp:focus{border-color:var(--p)}
+.login-btn{
+  width:100%;padding:15px;background:var(--p);color:white;border:none;
+  border-radius:12px;font-size:16px;font-weight:800;cursor:pointer;
+  font-family:var(--font);transition:background .2s;
+}
+.login-btn:hover{background:var(--pd)}
+.login-err{color:var(--danger);font-size:13px;margin-top:10px;display:none}
+.login-hint{font-size:12px;color:var(--muted);margin-top:16px}
+
+/* DASHBOARD */
+#dashboard{display:none}
+.sidebar{
+  position:fixed;top:0;left:0;bottom:0;width:240px;
+  background:var(--text);overflow-y:auto;z-index:100;
+}
+.sidebar-logo{
+  padding:24px 20px;display:flex;align-items:center;gap:12px;
+  border-bottom:1px solid rgba(255,255,255,0.08);
+}
+.sidebar-logo-icon{
+  width:40px;height:40px;background:linear-gradient(135deg,var(--p),#FFD54F);
+  border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;
+}
+.sidebar-logo-text{color:white;font-weight:900;font-size:16px}
+.sidebar-logo-sub{color:rgba(255,255,255,0.4);font-size:11px;font-weight:600}
+.sidebar-nav{padding:16px 12px}
+.sidebar-label{
+  font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;
+  color:rgba(255,255,255,0.3);padding:12px 8px 6px;
+}
+.nav-item{
+  display:flex;align-items:center;gap:12px;padding:11px 14px;
+  border-radius:10px;color:rgba(255,255,255,0.6);font-weight:700;font-size:14px;
+  cursor:pointer;transition:all .2s;margin-bottom:2px;border:none;
+  background:none;width:100%;text-align:left;font-family:var(--font);
+}
+.nav-item:hover{background:rgba(255,255,255,0.07);color:white}
+.nav-item.active{background:var(--p);color:white}
+.nav-item .icon{font-size:18px;width:22px;text-align:center;flex-shrink:0}
+.sidebar-footer{
+  padding:16px 20px;border-top:1px solid rgba(255,255,255,0.08);
+  display:flex;flex-direction:column;gap:8px;
+}
+.sidebar-back-btn{
+  display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.5);
+  font-size:13px;font-weight:700;text-decoration:none;
+  padding:8px 12px;border-radius:8px;transition:all .2s;
+}
+.sidebar-back-btn:hover{color:white;background:rgba(255,255,255,0.07)}
+.logout-btn{
+  display:flex;align-items:center;gap:8px;color:rgba(239,68,68,0.8);
+  font-size:13px;font-weight:700;border:none;background:none;cursor:pointer;
+  font-family:var(--font);padding:8px 12px;border-radius:8px;transition:all .2s;width:100%;text-align:left;
+}
+.logout-btn:hover{background:rgba(239,68,68,0.1);color:var(--danger)}
+
+/* MAIN */
+.main{margin-left:240px;min-height:100vh}
+.topbar{
+  background:white;border-bottom:1px solid var(--border);
+  padding:16px 32px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:50;
+}
+.topbar-title{font-size:20px;font-weight:900;color:var(--text)}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.topbar-site-link{
+  font-size:13px;font-weight:700;color:var(--p);text-decoration:none;
+  padding:8px 16px;border:2px solid var(--p);border-radius:20px;transition:all .2s;
+}
+.topbar-site-link:hover{background:var(--p);color:white}
+.content{padding:32px}
+
+/* TABS */
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* CARDS */
+.card{background:white;border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);margin-bottom:24px}
+.card-title{font-size:17px;font-weight:900;color:var(--text);margin-bottom:20px;display:flex;align-items:center;gap:10px}
+.card-title span{font-size:20px}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px;margin-bottom:28px}
+.stat-card{background:white;border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);text-align:center}
+.stat-num{font-size:36px;font-weight:900;color:var(--p)}
+.stat-lbl{font-size:13px;color:var(--muted);font-weight:600;margin-top:4px}
+
+/* FORMS */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.field label{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.field input,.field textarea,.field select{
+  padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;
+  font-size:14px;font-family:var(--font);outline:none;
+  transition:border-color .2s;color:var(--text);background:white;
+}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--p)}
+.field textarea{resize:vertical;min-height:90px}
+.form-actions{display:flex;gap:12px;margin-top:8px;flex-wrap:wrap}
+
+/* BUTTONS */
+.btn{padding:10px 22px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;border:none;font-family:var(--font);transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--p);color:white}
+.btn-primary:hover{background:var(--pd);transform:translateY(-1px)}
+.btn-success{background:var(--success);color:white}
+.btn-success:hover{filter:brightness(0.9)}
+.btn-danger{background:var(--danger);color:white}
+.btn-danger:hover{filter:brightness(0.9)}
+.btn-ghost{background:var(--bg);color:var(--text);border:1.5px solid var(--border)}
+.btn-ghost:hover{border-color:var(--p);color:var(--p)}
+.btn-sm{padding:7px 14px;font-size:13px}
+
+/* LIST ITEMS */
+.list-item{
+  background:var(--bg);border-radius:10px;padding:16px 20px;
+  display:flex;align-items:flex-start;gap:14px;margin-bottom:12px;
+  border:1.5px solid var(--border);transition:border-color .2s;
+}
+.list-item:hover{border-color:var(--p)}
+.list-item-thumb{
+  width:56px;height:56px;border-radius:8px;object-fit:cover;flex-shrink:0;
+  background:linear-gradient(135deg,var(--p),#FFD54F);display:flex;align-items:center;justify-content:center;font-size:22px;
+}
+.list-item-thumb img{width:56px;height:56px;border-radius:8px;object-fit:cover}
+.list-item-body{flex:1;min-width:0}
+.list-item-title{font-size:15px;font-weight:800;color:var(--text);margin-bottom:4px}
+.list-item-sub{font-size:13px;color:var(--muted);line-height:1.4}
+.list-item-actions{display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap}
+
+/* GALLERY GRID ADMIN */
+.gallery-admin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.gallery-admin-item{position:relative;border-radius:10px;overflow:hidden;aspect-ratio:4/3}
+.gallery-admin-item img{width:100%;height:100%;object-fit:cover}
+.gallery-admin-del{
+  position:absolute;top:6px;right:6px;width:28px;height:28px;
+  background:rgba(239,68,68,0.9);border:none;border-radius:6px;
+  color:white;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+}
+.gallery-admin-cap{
+  position:absolute;bottom:0;left:0;right:0;
+  background:rgba(0,0,0,0.55);color:white;font-size:11px;
+  font-weight:600;padding:4px 8px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;
+}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:24px;right:24px;background:#1F2937;color:white;
+  padding:13px 22px;border-radius:10px;font-size:14px;font-weight:700;
+  box-shadow:0 8px 30px rgba(0,0,0,0.2);z-index:9999;
+  transform:translateY(70px);opacity:0;transition:all .4s;pointer-events:none;
+}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success{border-left:4px solid var(--success)}
+.toast.error{border-left:4px solid var(--danger)}
+
+/* BADGE */
+.badge{display:inline-block;padding:3px 10px;border-radius:50px;font-size:11px;font-weight:800;text-transform:uppercase}
+.badge-orange{background:rgba(255,107,53,0.12);color:var(--p)}
+.badge-green{background:rgba(16,185,129,0.12);color:var(--success)}
+.badge-blue{background:rgba(59,130,246,0.12);color:#3B82F6}
+
+/* DIVIDER */
+.divider{border:none;border-top:1px solid var(--border);margin:24px 0}
+
+/* MODAL OVERLAY for edit */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:500;
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  opacity:0;pointer-events:none;transition:opacity .3s;
+}
+.modal-overlay.open{opacity:1;pointer-events:auto}
+.modal{
+  background:white;border-radius:20px;padding:32px;
+  width:100%;max-width:560px;max-height:90vh;overflow-y:auto;
+  box-shadow:0 20px 60px rgba(0,0,0,0.2);
+}
+.modal-title{font-size:18px;font-weight:900;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center}
+.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)}
+
+/* DROP ZONE */
+.dropzone{
+  border:2px dashed var(--border);border-radius:12px;
+  padding:24px 20px;cursor:pointer;transition:all .2s;
+  text-align:center;background:var(--bg);
+}
+.dropzone:hover,.dropzone.over{border-color:var(--p);background:rgba(255,107,53,0.04)}
+.dz-icon{font-size:36px;margin-bottom:8px}
+.dz-label{font-weight:800;font-size:15px;color:var(--text)}
+.dz-hint{font-size:12px;color:var(--muted);margin-top:4px}
+.dz-prev{pointer-events:none}
+.dz-file-row{
+  display:flex;align-items:center;gap:12px;
+  background:white;border-radius:10px;padding:12px 16px;
+  border:1px solid var(--border);pointer-events:auto;
+}
+.dz-thumb{width:48px;height:48px;border-radius:8px;object-fit:cover;flex-shrink:0}
+.dz-thumb-icon{width:48px;height:48px;border-radius:8px;background:rgba(255,107,53,0.1);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+.dz-file-name{font-weight:800;font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px}
+.dz-file-size{font-size:12px;color:var(--muted);margin-top:2px}
+.dz-del{margin-left:auto;flex-shrink:0}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .sidebar{width:100%;height:auto;position:relative}
+  .main{margin-left:0}
+  .form-row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ LOGIN ═══ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">🌟</div>
+    <div class="login-title">Админ-панель</div>
+    <div class="login-sub">Детский сад NurAI</div>
+    <input type="password" class="login-inp" id="pw-input" placeholder="Введите пароль" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">Войти</button>
+    <div class="login-err" id="login-err">Неверный пароль</div>
+    <div class="login-hint">Пароль по умолчанию: <strong>admin123</strong></div>
+  </div>
+</div>
+
+<!-- ═══ DASHBOARD ═══ -->
+<div id="dashboard">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">🌟</div>
+      <div>
+        <div class="sidebar-logo-text" id="sb-name">NurAI</div>
+        <div class="sidebar-logo-sub">Админ-панель</div>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="sidebar-label">Главное</div>
+      <button class="nav-item active" onclick="switchTab('overview')"><span class="icon">🏠</span>Обзор</button>
+      <div class="sidebar-label">Контент</div>
+      <button class="nav-item" onclick="switchTab('settings')"><span class="icon">⚙️</span>Настройки сайта</button>
+      <button class="nav-item" onclick="switchTab('about')"><span class="icon">📖</span>О нас</button>
+      <button class="nav-item" onclick="switchTab('news')"><span class="icon">📰</span>Новости</button>
+      <button class="nav-item" onclick="switchTab('team')"><span class="icon">👩‍🏫</span>Педагоги</button>
+      <button class="nav-item" onclick="switchTab('gallery')"><span class="icon">🖼️</span>Галерея</button>
+      <button class="nav-item" onclick="switchTab('programs')"><span class="icon">📚</span>Программы</button>
+      <button class="nav-item" onclick="switchTab('attestation')"><span class="icon">📋</span>Аттестация</button>
+      <div class="sidebar-label">Аккаунт</div>
+      <button class="nav-item" onclick="switchTab('password')"><span class="icon">🔒</span>Сменить пароль</button>
+    </div>
+    <div class="sidebar-footer">
+      <a href="index.html" class="sidebar-back-btn" target="_blank">🌐 Открыть сайт</a>
+      <button class="logout-btn" onclick="doLogout()">🚪 Выйти</button>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="topbar-title">Обзор</div>
+      <div class="topbar-right">
+        <a href="index.html" target="_blank" class="topbar-site-link">🌐 Сайт</a>
+      </div>
+    </div>
+    <div class="content">
+
+      <!-- ══ OVERVIEW ══ -->
+      <div class="tab-panel active" id="tab-overview">
+        <div class="stats-row" id="overview-stats"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+          <div class="card">
+            <div class="card-title"><span>📰</span>Последние новости</div>
+            <div id="ov-news"></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><span>⚡</span>Быстрые действия</div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="switchTab('news')">➕ Добавить новость</button>
+              <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="switchTab('gallery')">🖼️ Управление галереей</button>
+              <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="switchTab('team')">👩‍🏫 Управление педагогами</button>
+              <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="switchTab('settings')">⚙️ Настройки</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SETTINGS ══ -->
+      <div class="tab-panel" id="tab-settings">
+        <div class="card">
+          <div class="card-title"><span>🏫</span>Основная информация</div>
+          <div class="form-row">
+            <div class="field"><label>Название сайта (RU)</label><input id="s-name" placeholder="NurAI"></div>
+            <div class="field"><label>Instagram</label><input id="s-ig" placeholder="@detskiisad_nurai"></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Слоган (RU)</label><input id="s-tagline-ru" placeholder="Место, где живёт счастливое детство"></div>
+            <div class="field"><label>Слоган (KZ)</label><input id="s-tagline-kz" placeholder="Бақытты балалық шақ..."></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span>📞</span>Контактные данные</div>
+          <div class="form-row">
+            <div class="field"><label>Телефон</label><input id="s-phone" placeholder="+7 777 046 46 41"></div>
+            <div class="field"><label>Email</label><input id="s-email" type="email" placeholder="email@mail.ru"></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Адрес (RU)</label><input id="s-addr-ru" placeholder="ул. Солнечная, 12, Алматы"></div>
+            <div class="field"><label>Адрес (KZ)</label><input id="s-addr-kz" placeholder="Алматы қ., Күнгей к., 12"></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Режим работы (RU)</label><input id="s-hours-ru" placeholder="Пн–Пт: 7:00 – 19:00"></div>
+            <div class="field"><label>Режим работы (KZ)</label><input id="s-hours-kz" placeholder="Дс–Жм: 7:00 – 19:00"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span>📊</span>Статистика (Hero-блок)</div>
+          <div class="form-row">
+            <div class="field"><label>Цифра 1 (лет работы)</label><input id="s-st1" type="number" placeholder="8"></div>
+            <div class="field"><label>Подпись 1 (RU / KZ)</label>
+              <div style="display:flex;gap:8px">
+                <input id="s-st1ru" placeholder="лет работы" style="flex:1;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:var(--font);outline:none">
+                <input id="s-st1kz" placeholder="жыл жұмыс" style="flex:1;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:var(--font);outline:none">
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Цифра 2 (детей)</label><input id="s-st2" type="number" placeholder="120"></div>
+            <div class="field"><label>Подпись 2 (RU / KZ)</label>
+              <div style="display:flex;gap:8px">
+                <input id="s-st2ru" placeholder="детей" style="flex:1;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:var(--font);outline:none">
+                <input id="s-st2kz" placeholder="бала" style="flex:1;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:var(--font);outline:none">
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Цифра 3 (педагогов)</label><input id="s-st3" type="number" placeholder="15"></div>
+            <div class="field"><label>Подпись 3 (RU / KZ)</label>
+              <div style="display:flex;gap:8px">
+                <input id="s-st3ru" placeholder="педагогов" style="flex:1;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:var(--font);outline:none">
+                <input id="s-st3kz" placeholder="педагог" style="flex:1;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:var(--font);outline:none">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="saveSettings()">💾 Сохранить настройки</button>
+          <button class="btn btn-ghost" onclick="loadSettings()">↩️ Сбросить</button>
+        </div>
+      </div>
+
+      <!-- ══ ABOUT ══ -->
+      <div class="tab-panel" id="tab-about">
+        <div class="card">
+          <div class="card-title"><span>📖</span>Текст «О нас»</div>
+          <div class="form-row">
+            <div class="field"><label>Заголовок (RU)</label><input id="ab-title-ru" placeholder="О нашем детском саде"></div>
+            <div class="field"><label>Заголовок (KZ)</label><input id="ab-title-kz" placeholder="Біздің балабақша туралы"></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Основной текст (RU)</label><textarea id="ab-text-ru" rows="4"></textarea></div>
+            <div class="field"><label>Основной текст (KZ)</label><textarea id="ab-text-kz" rows="4"></textarea></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Миссия (RU)</label><textarea id="ab-mission-ru" rows="3"></textarea></div>
+            <div class="field"><label>Миссия (KZ)</label><textarea id="ab-mission-kz" rows="3"></textarea></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span>👶</span>Группы</div>
+          <div id="groups-editor"></div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="saveAbout()">💾 Сохранить</button>
+        </div>
+      </div>
+
+      <!-- ══ NEWS ══ -->
+      <div class="tab-panel" id="tab-news">
+        <div class="card">
+          <div class="card-title"><span>➕</span>Добавить новость</div>
+          <div class="form-row">
+            <div class="field"><label>Заголовок (RU)</label><input id="n-title-ru" placeholder="Название новости"></div>
+            <div class="field"><label>Заголовок (KZ)</label><input id="n-title-kz" placeholder="Жаңалық атауы"></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Дата</label><input id="n-date" type="date"></div>
+            <div class="field"><label>URL фотографии (необязательно)</label><input id="n-img" placeholder="https://..."></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Текст (RU)</label><textarea id="n-text-ru" rows="3" placeholder="Текст новости..."></textarea></div>
+            <div class="field"><label>Текст (KZ)</label><textarea id="n-text-kz" rows="3" placeholder="Жаңалық мәтіні..."></textarea></div>
+          </div>
+          <button class="btn btn-primary" onclick="addNews()">➕ Добавить новость</button>
+        </div>
+        <div class="card">
+          <div class="card-title"><span>📰</span>Все новости</div>
+          <div id="news-list"></div>
+        </div>
+      </div>
+
+      <!-- ══ TEAM ══ -->
+      <div class="tab-panel" id="tab-team">
+        <div class="card">
+          <div class="card-title"><span>➕</span>Добавить педагога</div>
+          <div class="form-row">
+            <div class="field"><label>Имя (RU)</label><input id="tm-name-ru" placeholder="Иванова Айгерим"></div>
+            <div class="field"><label>Имя (KZ)</label><input id="tm-name-kz" placeholder="Иванова Айгерім"></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Должность (RU)</label><input id="tm-role-ru" placeholder="Воспитатель"></div>
+            <div class="field"><label>Должность (KZ)</label><input id="tm-role-kz" placeholder="Тәрбиеші"></div>
+          </div>
+          <div class="field"><label>URL фотографии</label><input id="tm-photo" placeholder="https://..."></div>
+          <div class="form-row">
+            <div class="field"><label>О педагоге (RU)</label><textarea id="tm-bio-ru" rows="3" placeholder="Краткая биография..."></textarea></div>
+            <div class="field"><label>О педагоге (KZ)</label><textarea id="tm-bio-kz" rows="3" placeholder="Қысқаша өмірбаян..."></textarea></div>
+          </div>
+          <button class="btn btn-primary" onclick="addTeam()">➕ Добавить педагога</button>
+        </div>
+        <div class="card">
+          <div class="card-title"><span>👩‍🏫</span>Все педагоги</div>
+          <div id="team-list"></div>
+        </div>
+      </div>
+
+      <!-- ══ GALLERY ══ -->
+      <div class="tab-panel" id="tab-gallery">
+        <div class="card">
+          <div class="card-title"><span>➕</span>Добавить фотографию</div>
+          <div class="form-row">
+            <div class="field"><label>URL фотографии</label><input id="g-url" placeholder="https://images.unsplash.com/..."></div>
+            <div class="field"><label>Подпись (RU)</label><input id="g-cap-ru" placeholder="Описание фото"></div>
+          </div>
+          <div class="field"><label>Подпись (KZ)</label><input id="g-cap-kz" placeholder="Сурет сипаттамасы"></div>
+          <div id="g-preview" style="margin:10px 0;display:none">
+            <img id="g-preview-img" style="max-height:140px;border-radius:10px;object-fit:cover">
+          </div>
+          <button class="btn btn-primary" onclick="addGallery()">➕ Добавить фото</button>
+        </div>
+        <div class="card">
+          <div class="card-title"><span>🖼️</span>Все фотографии (<span id="g-count">0</span>)</div>
+          <div class="gallery-admin-grid" id="gallery-admin-list"></div>
+        </div>
+      </div>
+
+      <!-- ══ PROGRAMS ══ -->
+      <div class="tab-panel" id="tab-programs">
+        <div class="card">
+          <div class="card-title"><span>📚</span>Программы обучения</div>
+          <div id="programs-editor"></div>
+          <button class="btn btn-primary" onclick="savePrograms()">💾 Сохранить программы</button>
+        </div>
+      </div>
+
+      <!-- ══ ATTESTATION ══ -->
+      <div class="tab-panel" id="tab-attestation">
+        <div class="card">
+          <div class="card-title"><span>➕</span>Добавить документ</div>
+          <div class="form-row">
+            <div class="field"><label>Название (RU)</label><input id="at-title-ru" placeholder="Лицензия..."></div>
+            <div class="field"><label>Название (KZ)</label><input id="at-title-kz" placeholder="Лицензия..."></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Описание (RU)</label><textarea id="at-desc-ru" rows="2"></textarea></div>
+            <div class="field"><label>Описание (KZ)</label><textarea id="at-desc-kz" rows="2"></textarea></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Дата выдачи</label><input id="at-date" type="date"></div>
+            <div class="field"><label>Иконка (emoji)</label><input id="at-icon" placeholder="📋" maxlength="4"></div>
+          </div>
+          <div class="field">
+            <label>📎 Файл документа (PDF или фото аттестата)</label>
+            <div id="at-dropzone" class="dropzone" onclick="document.getElementById('at-file-inp').click()"
+                 ondragover="dzOver(event,'at-dropzone')" ondragleave="dzLeave('at-dropzone')" ondrop="dzDrop(event,'at')">
+              <input type="file" id="at-file-inp" accept=".pdf,image/*" style="display:none" onchange="dzSelect(this,'at')">
+              <div id="at-file-ph" class="dz-ph"><div class="dz-icon">📁</div>
+                <div class="dz-label">Нажмите или перетащите файл сюда</div>
+                <div class="dz-hint">PDF, JPG, PNG — до 50 МБ</div>
+              </div>
+              <div id="at-file-prev" class="dz-prev" style="display:none"></div>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="addAttestation()">➕ Добавить документ</button>
+        </div>
+        <div class="card">
+          <div class="card-title"><span>📋</span>Все документы</div>
+          <div id="att-list"></div>
+        </div>
+      </div>
+
+      <!-- ══ PASSWORD ══ -->
+      <div class="tab-panel" id="tab-password">
+        <div class="card" style="max-width:420px">
+          <div class="card-title"><span>🔒</span>Смена пароля</div>
+          <div class="field"><label>Текущий пароль</label><input type="password" id="pw-old" placeholder="Текущий пароль"></div>
+          <div class="field"><label>Новый пароль</label><input type="password" id="pw-new" placeholder="Новый пароль (мин. 4 символа)"></div>
+          <div class="field"><label>Повторите пароль</label><input type="password" id="pw-confirm" placeholder="Повторите новый пароль"></div>
+          <button class="btn btn-primary" onclick="changePassword()">🔒 Сменить пароль</button>
+        </div>
+        <div class="card" style="max-width:420px;background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.2)">
+          <div class="card-title"><span>⚠️</span>Сбросить все данные</div>
+          <p style="font-size:14px;color:var(--muted);margin-bottom:16px">Сбросить все данные сайта к значениям по умолчанию. Это действие нельзя отменить!</p>
+          <button class="btn btn-danger" onclick="confirmReset()">🗑️ Сбросить всё</button>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /dashboard -->
+
+<!-- MODAL (edit items) -->
+<div class="modal-overlay" id="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modal-body"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/filestore.js"></script>
+<script src="js/data.js"></script>
+<script>
+// ═══ AUTH ═══
+function doLogin(){
+  const d = getData();
+  const pw = document.getElementById('pw-input').value;
+  if(pw === d.settings.adminPassword){
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    document.getElementById('sb-name').textContent = d.settings.siteName;
+    loadAll();
+  } else {
+    document.getElementById('login-err').style.display = 'block';
+    document.getElementById('pw-input').style.borderColor = '#EF4444';
+    setTimeout(()=>{ document.getElementById('pw-input').style.borderColor=''; },2000);
+  }
+}
+document.getElementById('pw-input').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+function doLogout(){
+  document.getElementById('dashboard').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('pw-input').value='';
+  document.getElementById('login-err').style.display='none';
+}
+
+// ═══ TABS ═══
+const TAB_TITLES = {overview:'Обзор',settings:'Настройки сайта',about:'О нас',news:'Новости',team:'Педагоги',gallery:'Галерея',programs:'Программы',attestation:'Аттестация',password:'Безопасность'};
+function switchTab(id){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(b=>{ if(b.getAttribute('onclick')?.includes(`'${id}'`)) b.classList.add('active'); });
+  document.getElementById('topbar-title').textContent = TAB_TITLES[id]||id;
+  loadAll();
+}
+
+// ═══ TOAST ═══
+function toast(msg, type='success'){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = `toast ${type} show`;
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ═══ MODAL ═══
+function openModal(html){ document.getElementById('modal-body').innerHTML=html; document.getElementById('modal-overlay').classList.add('open'); }
+function closeModal(){ document.getElementById('modal-overlay').classList.remove('open'); }
+
+// ═══ LOAD ALL ═══
+function loadAll(){
+  loadSettings();
+  loadOverview();
+  loadNews();
+  loadTeam();
+  loadGallery();
+  loadPrograms();
+  loadAttestation();
+  loadAbout();
+}
+
+// ═══ OVERVIEW ═══
+function loadOverview(){
+  const d = getData();
+  document.getElementById('overview-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-num">${d.news.length}</div><div class="stat-lbl">📰 Новостей</div></div>
+    <div class="stat-card"><div class="stat-num">${d.team.length}</div><div class="stat-lbl">👩‍🏫 Педагогов</div></div>
+    <div class="stat-card"><div class="stat-num">${d.gallery.length}</div><div class="stat-lbl">🖼️ Фото</div></div>
+    <div class="stat-card"><div class="stat-num">${d.programs.length}</div><div class="stat-lbl">📚 Программ</div></div>
+    <div class="stat-card"><div class="stat-num">${d.attestation.length}</div><div class="stat-lbl">📋 Документов</div></div>`;
+  document.getElementById('ov-news').innerHTML = d.news.slice(0,3).map(n=>`
+    <div style="padding:12px 0;border-bottom:1px solid var(--border)">
+      <div style="font-weight:800;font-size:14px">${n.titleRu}</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:2px">${n.date}</div>
+    </div>`).join('') || '<p style="color:var(--muted);font-size:14px">Нет новостей</p>';
+}
+
+// ═══ SETTINGS ═══
+function loadSettings(){
+  const s = getData().settings;
+  document.getElementById('s-name').value       = s.siteName||'';
+  document.getElementById('s-ig').value         = s.instagram||'';
+  document.getElementById('s-tagline-ru').value = s.siteTaglineRu||'';
+  document.getElementById('s-tagline-kz').value = s.siteTaglineKz||'';
+  document.getElementById('s-phone').value      = s.phone||'';
+  document.getElementById('s-email').value      = s.email||'';
+  document.getElementById('s-addr-ru').value    = s.address||'';
+  document.getElementById('s-addr-kz').value    = s.addressKz||'';
+  document.getElementById('s-hours-ru').value   = s.hours||'';
+  document.getElementById('s-hours-kz').value   = s.hoursKz||'';
+  document.getElementById('s-st1').value        = s.heroStat1||'';
+  document.getElementById('s-st1ru').value      = s.heroStat1Ru||'';
+  document.getElementById('s-st1kz').value      = s.heroStat1Kz||'';
+  document.getElementById('s-st2').value        = s.heroStat2||'';
+  document.getElementById('s-st2ru').value      = s.heroStat2Ru||'';
+  document.getElementById('s-st2kz').value      = s.heroStat2Kz||'';
+  document.getElementById('s-st3').value        = s.heroStat3||'';
+  document.getElementById('s-st3ru').value      = s.heroStat3Ru||'';
+  document.getElementById('s-st3kz').value      = s.heroStat3Kz||'';
+}
+function saveSettings(){
+  const d = getData();
+  d.settings.siteName      = document.getElementById('s-name').value.trim();
+  d.settings.instagram     = document.getElementById('s-ig').value.trim();
+  d.settings.siteTaglineRu = document.getElementById('s-tagline-ru').value.trim();
+  d.settings.siteTaglineKz = document.getElementById('s-tagline-kz').value.trim();
+  d.settings.phone         = document.getElementById('s-phone').value.trim();
+  d.settings.email         = document.getElementById('s-email').value.trim();
+  d.settings.address       = document.getElementById('s-addr-ru').value.trim();
+  d.settings.addressKz     = document.getElementById('s-addr-kz').value.trim();
+  d.settings.hours         = document.getElementById('s-hours-ru').value.trim();
+  d.settings.hoursKz       = document.getElementById('s-hours-kz').value.trim();
+  d.settings.heroStat1     = document.getElementById('s-st1').value.trim();
+  d.settings.heroStat1Ru   = document.getElementById('s-st1ru').value.trim();
+  d.settings.heroStat1Kz   = document.getElementById('s-st1kz').value.trim();
+  d.settings.heroStat2     = document.getElementById('s-st2').value.trim();
+  d.settings.heroStat2Ru   = document.getElementById('s-st2ru').value.trim();
+  d.settings.heroStat2Kz   = document.getElementById('s-st2kz').value.trim();
+  d.settings.heroStat3     = document.getElementById('s-st3').value.trim();
+  d.settings.heroStat3Ru   = document.getElementById('s-st3ru').value.trim();
+  d.settings.heroStat3Kz   = document.getElementById('s-st3kz').value.trim();
+  saveData(d);
+  document.getElementById('sb-name').textContent = d.settings.siteName;
+  toast('✅ Настройки сохранены!');
+}
+
+// ═══ ABOUT ═══
+function loadAbout(){
+  const ab = getData().about;
+  document.getElementById('ab-title-ru').value   = ab.titleRu||'';
+  document.getElementById('ab-title-kz').value   = ab.titleKz||'';
+  document.getElementById('ab-text-ru').value    = ab.textRu||'';
+  document.getElementById('ab-text-kz').value    = ab.textKz||'';
+  document.getElementById('ab-mission-ru').value = ab.missionRu||'';
+  document.getElementById('ab-mission-kz').value = ab.missionKz||'';
+  document.getElementById('groups-editor').innerHTML = ab.groups.map((g,i)=>`
+    <div style="background:var(--bg);border-radius:10px;padding:16px;margin-bottom:12px;border:1px solid var(--border)">
+      <div style="font-weight:800;margin-bottom:10px">Группа ${i+1} <span style="font-size:18px">${g.icon}</span></div>
+      <div class="form-row">
+        <div class="field"><label>Название (RU)</label><input value="${g.nameRu||''}" onchange="updateGroup(${i},'nameRu',this.value)"></div>
+        <div class="field"><label>Название (KZ)</label><input value="${g.nameKz||''}" onchange="updateGroup(${i},'nameKz',this.value)"></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Возраст (RU)</label><input value="${g.ageRu||''}" onchange="updateGroup(${i},'ageRu',this.value)"></div>
+        <div class="field"><label>Возраст (KZ)</label><input value="${g.ageKz||''}" onchange="updateGroup(${i},'ageKz',this.value)"></div>
+      </div>
+    </div>`).join('');
+}
+function updateGroup(i,field,val){ const d=getData(); d.about.groups[i][field]=val; saveData(d); }
+function saveAbout(){
+  const d = getData();
+  d.about.titleRu   = document.getElementById('ab-title-ru').value.trim();
+  d.about.titleKz   = document.getElementById('ab-title-kz').value.trim();
+  d.about.textRu    = document.getElementById('ab-text-ru').value.trim();
+  d.about.textKz    = document.getElementById('ab-text-kz').value.trim();
+  d.about.missionRu = document.getElementById('ab-mission-ru').value.trim();
+  d.about.missionKz = document.getElementById('ab-mission-kz').value.trim();
+  saveData(d);
+  toast('✅ Раздел «О нас» сохранён!');
+}
+
+// ═══ NEWS ═══
+function loadNews(){
+  const news = getData().news;
+  document.getElementById('news-list').innerHTML = news.map(n=>`
+    <div class="list-item">
+      <div class="list-item-thumb">${n.image?`<img src="${n.image}" onerror="this.parentElement.innerHTML='📰'">`:'📰'}</div>
+      <div class="list-item-body">
+        <div class="list-item-title">${n.titleRu}</div>
+        <div class="list-item-sub">${n.date} · ${n.titleKz}</div>
+      </div>
+      <div class="list-item-actions">
+        <button class="btn btn-ghost btn-sm" onclick="editNews(${n.id})">✏️ Изменить</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteNews(${n.id})">🗑️</button>
+      </div>
+    </div>`).join('') || '<p style="color:var(--muted);font-size:14px;padding:12px 0">Нет новостей. Добавьте первую!</p>';
+}
+function addNews(){
+  const d = getData();
+  const ru = document.getElementById('n-title-ru').value.trim();
+  const kz = document.getElementById('n-title-kz').value.trim();
+  if(!ru){ toast('⚠️ Введите заголовок (RU)','error'); return; }
+  const id = Date.now();
+  d.news.unshift({ id, titleRu:ru, titleKz:kz||ru,
+    date: document.getElementById('n-date').value,
+    textRu: document.getElementById('n-text-ru').value.trim(),
+    textKz: document.getElementById('n-text-kz').value.trim(),
+    image: document.getElementById('n-img').value.trim() });
+  saveData(d); loadNews(); loadOverview();
+  ['n-title-ru','n-title-kz','n-date','n-img','n-text-ru','n-text-kz'].forEach(id=>document.getElementById(id).value='');
+  toast('✅ Новость добавлена!');
+}
+function deleteNews(id){
+  if(!confirm('Удалить эту новость?')) return;
+  const d = getData(); d.news = d.news.filter(n=>n.id!==id); saveData(d); loadNews(); loadOverview(); toast('🗑️ Новость удалена');
+}
+function editNews(id){
+  const d = getData(); const n = d.news.find(x=>x.id===id); if(!n) return;
+  openModal(`
+    <div class="modal-title">✏️ Редактировать новость <button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="form-row">
+      <div class="field"><label>Заголовок (RU)</label><input id="en-tru" value="${n.titleRu}"></div>
+      <div class="field"><label>Заголовок (KZ)</label><input id="en-tkz" value="${n.titleKz}"></div>
+    </div>
+    <div class="form-row">
+      <div class="field"><label>Дата</label><input id="en-date" type="date" value="${n.date}"></div>
+      <div class="field"><label>URL фото</label><input id="en-img" value="${n.image||''}"></div>
+    </div>
+    <div class="field"><label>Текст (RU)</label><textarea id="en-textru" rows="3">${n.textRu}</textarea></div>
+    <div class="field"><label>Текст (KZ)</label><textarea id="en-textkz" rows="3">${n.textKz}</textarea></div>
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="saveEditNews(${id})">💾 Сохранить</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Отмена</button>
+    </div>`);
+}
+function saveEditNews(id){
+  const d = getData(); const i = d.news.findIndex(x=>x.id===id); if(i<0) return;
+  d.news[i] = { ...d.news[i],
+    titleRu: document.getElementById('en-tru').value.trim(),
+    titleKz: document.getElementById('en-tkz').value.trim(),
+    date: document.getElementById('en-date').value,
+    image: document.getElementById('en-img').value.trim(),
+    textRu: document.getElementById('en-textru').value.trim(),
+    textKz: document.getElementById('en-textkz').value.trim() };
+  saveData(d); closeModal(); loadNews(); toast('✅ Новость обновлена!');
+}
+
+// ═══ TEAM ═══
+function loadTeam(){
+  const team = getData().team;
+  document.getElementById('team-list').innerHTML = team.map(m=>`
+    <div class="list-item">
+      <div class="list-item-thumb">${m.photo?`<img src="${m.photo}" onerror="this.parentElement.innerHTML='👩‍🏫'">`:'👩‍🏫'}</div>
+      <div class="list-item-body">
+        <div class="list-item-title">${m.nameRu}</div>
+        <div class="list-item-sub">${m.roleRu}</div>
+      </div>
+      <div class="list-item-actions">
+        <button class="btn btn-ghost btn-sm" onclick="editTeam(${m.id})">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteTeam(${m.id})">🗑️</button>
+      </div>
+    </div>`).join('') || '<p style="color:var(--muted);font-size:14px;padding:12px 0">Нет педагогов. Добавьте первого!</p>';
+}
+function addTeam(){
+  const d = getData();
+  const ru = document.getElementById('tm-name-ru').value.trim();
+  if(!ru){ toast('⚠️ Введите имя педагога','error'); return; }
+  d.team.push({ id:Date.now(),
+    nameRu:ru, nameKz:document.getElementById('tm-name-kz').value.trim()||ru,
+    roleRu:document.getElementById('tm-role-ru').value.trim(),
+    roleKz:document.getElementById('tm-role-kz').value.trim(),
+    photo:document.getElementById('tm-photo').value.trim(),
+    bioRu:document.getElementById('tm-bio-ru').value.trim(),
+    bioKz:document.getElementById('tm-bio-kz').value.trim() });
+  saveData(d); loadTeam();
+  ['tm-name-ru','tm-name-kz','tm-role-ru','tm-role-kz','tm-photo','tm-bio-ru','tm-bio-kz'].forEach(id=>document.getElementById(id).value='');
+  toast('✅ Педагог добавлен!');
+}
+function deleteTeam(id){
+  if(!confirm('Удалить педагога?')) return;
+  const d = getData(); d.team = d.team.filter(m=>m.id!==id); saveData(d); loadTeam(); toast('🗑️ Педагог удалён');
+}
+function editTeam(id){
+  const d = getData(); const m = d.team.find(x=>x.id===id); if(!m) return;
+  openModal(`
+    <div class="modal-title">✏️ Редактировать педагога <button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="form-row">
+      <div class="field"><label>Имя (RU)</label><input id="et-nru" value="${m.nameRu}"></div>
+      <div class="field"><label>Имя (KZ)</label><input id="et-nkz" value="${m.nameKz}"></div>
+    </div>
+    <div class="form-row">
+      <div class="field"><label>Должность (RU)</label><input id="et-rru" value="${m.roleRu}"></div>
+      <div class="field"><label>Должность (KZ)</label><input id="et-rkz" value="${m.roleKz}"></div>
+    </div>
+    <div class="field"><label>URL фото</label><input id="et-photo" value="${m.photo||''}"></div>
+    <div class="field"><label>О педагоге (RU)</label><textarea id="et-bru" rows="3">${m.bioRu||''}</textarea></div>
+    <div class="field"><label>О педагоге (KZ)</label><textarea id="et-bkz" rows="3">${m.bioKz||''}</textarea></div>
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="saveEditTeam(${id})">💾 Сохранить</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Отмена</button>
+    </div>`);
+}
+function saveEditTeam(id){
+  const d = getData(); const i = d.team.findIndex(x=>x.id===id); if(i<0) return;
+  d.team[i] = { ...d.team[i],
+    nameRu:document.getElementById('et-nru').value.trim(),
+    nameKz:document.getElementById('et-nkz').value.trim(),
+    roleRu:document.getElementById('et-rru').value.trim(),
+    roleKz:document.getElementById('et-rkz').value.trim(),
+    photo:document.getElementById('et-photo').value.trim(),
+    bioRu:document.getElementById('et-bru').value.trim(),
+    bioKz:document.getElementById('et-bkz').value.trim() };
+  saveData(d); closeModal(); loadTeam(); toast('✅ Педагог обновлён!');
+}
+
+// ═══ GALLERY ═══
+document.getElementById('g-url').addEventListener('input', function(){
+  const v = this.value.trim();
+  const prev = document.getElementById('g-preview');
+  if(v){ prev.style.display='block'; document.getElementById('g-preview-img').src=v; }
+  else  { prev.style.display='none'; }
+});
+function loadGallery(){
+  const gal = getData().gallery;
+  document.getElementById('g-count').textContent = gal.length;
+  document.getElementById('gallery-admin-list').innerHTML = gal.map(g=>`
+    <div class="gallery-admin-item">
+      <img src="${g.url}" alt="${g.captionRu}" onerror="this.parentElement.style.background='#ddd'">
+      <button class="gallery-admin-del" onclick="deleteGallery(${g.id})" title="Удалить">✕</button>
+      <div class="gallery-admin-cap">${g.captionRu}</div>
+    </div>`).join('') || '<p style="color:var(--muted);font-size:14px;padding:12px 0;grid-column:1/-1">Галерея пуста</p>';
+}
+function addGallery(){
+  const url = document.getElementById('g-url').value.trim();
+  if(!url){ toast('⚠️ Введите URL фото','error'); return; }
+  const d = getData();
+  d.gallery.push({ id:Date.now(), url,
+    captionRu: document.getElementById('g-cap-ru').value.trim()||'Фото',
+    captionKz: document.getElementById('g-cap-kz').value.trim()||'Сурет' });
+  saveData(d); loadGallery();
+  document.getElementById('g-url').value=''; document.getElementById('g-cap-ru').value=''; document.getElementById('g-cap-kz').value='';
+  document.getElementById('g-preview').style.display='none';
+  toast('✅ Фото добавлено!');
+}
+function deleteGallery(id){
+  if(!confirm('Удалить фото?')) return;
+  const d=getData(); d.gallery=d.gallery.filter(g=>g.id!==id); saveData(d); loadGallery(); toast('🗑️ Фото удалено');
+}
+
+// ═══ PROGRAMS ═══
+function loadPrograms(){
+  const progs = getData().programs;
+  document.getElementById('programs-editor').innerHTML = progs.map((p,i)=>`
+    <div style="background:var(--bg);border-radius:12px;padding:20px;margin-bottom:16px;border:1px solid var(--border)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div style="font-weight:900;font-size:16px">${p.icon} Программа ${i+1}</div>
+        <button class="btn btn-danger btn-sm" onclick="deleteProgram(${p.id})">🗑️ Удалить</button>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Иконка (emoji)</label><input value="${p.icon}" onchange="updateProg(${p.id},'icon',this.value)" maxlength="4"></div>
+        <div class="field"><label>Название (RU)</label><input value="${p.titleRu}" onchange="updateProg(${p.id},'titleRu',this.value)"></div>
+      </div>
+      <div class="field"><label>Название (KZ)</label><input value="${p.titleKz}" onchange="updateProg(${p.id},'titleKz',this.value)"></div>
+      <div class="form-row">
+        <div class="field"><label>Описание (RU)</label><textarea onchange="updateProg(${p.id},'descRu',this.value)">${p.descRu}</textarea></div>
+        <div class="field"><label>Описание (KZ)</label><textarea onchange="updateProg(${p.id},'descKz',this.value)">${p.descKz}</textarea></div>
+      </div>
+    </div>`).join('');
+  // Add new program button
+  document.getElementById('programs-editor').insertAdjacentHTML('beforeend',`
+    <button class="btn btn-ghost" style="margin-bottom:16px" onclick="addProgram()">➕ Добавить программу</button>`);
+}
+function updateProg(id,field,val){ const d=getData(); const p=d.programs.find(x=>x.id===id); if(p){ p[field]=val; saveData(d); } }
+function deleteProgram(id){
+  if(!confirm('Удалить программу?')) return;
+  const d=getData(); d.programs=d.programs.filter(p=>p.id!==id); saveData(d); loadPrograms(); toast('🗑️ Программа удалена');
+}
+function addProgram(){
+  const d=getData();
+  d.programs.push({id:Date.now(),icon:'📌',titleRu:'Новая программа',titleKz:'Жаңа бағдарлама',descRu:'Описание программы',descKz:'Бағдарлама сипаттамасы'});
+  saveData(d); loadPrograms(); toast('✅ Программа добавлена!');
+}
+function savePrograms(){ const d=getData(); saveData(d); toast('✅ Программы сохранены!'); }
+
+// ═══ DROP ZONE helpers ═══
+const _dzFiles = {}; // pending File objects keyed by zone prefix
+
+function dzOver(e, zoneId){ e.preventDefault(); document.getElementById(zoneId).classList.add('over'); }
+function dzLeave(zoneId){ document.getElementById(zoneId).classList.remove('over'); }
+function dzDrop(e, prefix){
+  e.preventDefault();
+  dzLeave(prefix+'-dropzone');
+  const f = e.dataTransfer.files[0]; if(!f) return;
+  _dzFiles[prefix] = f;
+  _dzShowPreview(prefix, f);
+}
+function dzSelect(input, prefix){
+  const f = input.files[0]; if(!f) return;
+  _dzFiles[prefix] = f;
+  _dzShowPreview(prefix, f);
+}
+function _dzShowPreview(prefix, file){
+  const ph   = document.getElementById(prefix+'-file-ph');
+  const prev = document.getElementById(prefix+'-file-prev');
+  if(!ph||!prev) return;
+  ph.style.display = 'none';
+  const isPdf = file.type==='application/pdf';
+  const isImg = file.type.startsWith('image/');
+  const size  = (file.size/1024/1024).toFixed(2)+' МБ';
+  const renderRow = (thumbHtml) => {
+    prev.style.display = 'block';
+    prev.innerHTML = `<div class="dz-file-row">
+      ${thumbHtml}
+      <div style="min-width:0">
+        <div class="dz-file-name">${file.name}</div>
+        <div class="dz-file-size">${size} · ${isPdf?'PDF':'Изображение'}</div>
+      </div>
+      <button type="button" class="btn btn-danger btn-sm dz-del" onclick="dzClear('${prefix}')">✕ Убрать</button>
+    </div>`;
+  };
+  if(isImg){
+    const reader = new FileReader();
+    reader.onload = e => renderRow(`<img class="dz-thumb" src="${e.target.result}">`);
+    reader.readAsDataURL(file);
+  } else {
+    renderRow(`<div class="dz-thumb-icon">📄</div>`);
+  }
+}
+function dzClear(prefix){
+  delete _dzFiles[prefix];
+  const ph   = document.getElementById(prefix+'-file-ph');
+  const prev = document.getElementById(prefix+'-file-prev');
+  const inp  = document.getElementById(prefix+'-file-inp');
+  if(ph)   ph.style.display='block';
+  if(prev) { prev.style.display='none'; prev.innerHTML=''; }
+  if(inp)  inp.value='';
+}
+function dzShowExisting(prefix, fileName, fileType){
+  const ph   = document.getElementById(prefix+'-file-ph');
+  const prev = document.getElementById(prefix+'-file-prev');
+  if(!ph||!prev) return;
+  ph.style.display='none';
+  const isPdf = (fileType||'').includes('pdf');
+  const thumbHtml = isPdf ? `<div class="dz-thumb-icon">📄</div>`
+    : `<div class="dz-thumb-icon">🖼️</div>`;
+  prev.style.display='block';
+  prev.innerHTML = `<div class="dz-file-row">
+    ${thumbHtml}
+    <div style="min-width:0">
+      <div class="dz-file-name">${fileName||'Файл загружен'}</div>
+      <div class="dz-file-size" style="color:var(--success)">✅ Сохранён в браузере</div>
+    </div>
+    <button type="button" class="btn btn-danger btn-sm dz-del" onclick="dzClear('${prefix}')">✕ Заменить</button>
+  </div>`;
+}
+
+// ═══ ATTESTATION ═══
+function loadAttestation(){
+  const att = getData().attestation;
+  document.getElementById('att-list').innerHTML = att.map(a=>`
+    <div class="list-item">
+      <div class="list-item-thumb" style="font-size:28px;background:rgba(255,107,53,0.1);color:var(--p)">${a.icon||'📄'}</div>
+      <div class="list-item-body">
+        <div class="list-item-title">${a.titleRu}</div>
+        <div class="list-item-sub">${a.date||''} · ${(a.descRu||'').substring(0,60)}${a.fileId?` · <span style="color:var(--success)">📎 файл</span>`:''}</div>
+      </div>
+      <div class="list-item-actions">
+        <button class="btn btn-ghost btn-sm" onclick="editAtt(${a.id})">✏️ Изменить</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteAtt(${a.id})">🗑️</button>
+      </div>
+    </div>`).join('') || '<p style="color:var(--muted);font-size:14px;padding:12px 0">Нет документов. Добавьте первый!</p>';
+}
+
+async function addAttestation(){
+  const ru = document.getElementById('at-title-ru').value.trim();
+  if(!ru){ toast('⚠️ Введите название документа','error'); return; }
+  const btn = event.currentTarget; btn.disabled=true; btn.textContent='⏳ Сохранение...';
+  const d = getData();
+  const itemId = Date.now();
+  const newItem = {
+    id: itemId,
+    icon:    document.getElementById('at-icon').value.trim()||'📄',
+    titleRu: ru,
+    titleKz: document.getElementById('at-title-kz').value.trim()||ru,
+    descRu:  document.getElementById('at-desc-ru').value.trim(),
+    descKz:  document.getElementById('at-desc-kz').value.trim(),
+    date:    document.getElementById('at-date').value,
+    fileId:  null, fileName: null, fileType: null
+  };
+  if(_dzFiles['at']){
+    const fid = `att-${itemId}`;
+    try {
+      await fsStore(fid, _dzFiles['at']);
+      newItem.fileId   = fid;
+      newItem.fileName = _dzFiles['at'].name;
+      newItem.fileType = _dzFiles['at'].type;
+    } catch(e){ toast('⚠️ Ошибка сохранения файла: '+e.message,'error'); }
+    delete _dzFiles['at'];
+  }
+  d.attestation.push(newItem);
+  saveData(d); loadAttestation();
+  ['at-title-ru','at-title-kz','at-desc-ru','at-desc-kz','at-date','at-icon'].forEach(id=>document.getElementById(id).value='');
+  dzClear('at');
+  btn.disabled=false; btn.textContent='➕ Добавить документ';
+  toast('✅ Документ добавлен!');
+}
+
+async function deleteAtt(id){
+  if(!confirm('Удалить документ?')) return;
+  const d = getData();
+  const a = d.attestation.find(x=>x.id===id);
+  if(a?.fileId) await fsDelete(a.fileId).catch(()=>{});
+  d.attestation = d.attestation.filter(x=>x.id!==id);
+  saveData(d); loadAttestation(); toast('🗑️ Документ удалён');
+}
+
+async function editAtt(id){
+  const d=getData(); const a=d.attestation.find(x=>x.id===id); if(!a) return;
+  openModal(`
+    <div class="modal-title">✏️ Редактировать документ <button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="form-row">
+      <div class="field"><label>Иконка</label><input id="ea-icon" value="${a.icon||'📄'}" maxlength="4"></div>
+      <div class="field"><label>Дата</label><input id="ea-date" type="date" value="${a.date||''}"></div>
+    </div>
+    <div class="form-row">
+      <div class="field"><label>Название (RU)</label><input id="ea-tru" value="${a.titleRu}"></div>
+      <div class="field"><label>Название (KZ)</label><input id="ea-tkz" value="${a.titleKz}"></div>
+    </div>
+    <div class="field"><label>Описание (RU)</label><textarea id="ea-dru" rows="3">${a.descRu}</textarea></div>
+    <div class="field"><label>Описание (KZ)</label><textarea id="ea-dkz" rows="3">${a.descKz}</textarea></div>
+    <div class="field">
+      <label>📎 Файл документа</label>
+      <div id="ea-dropzone" class="dropzone" onclick="document.getElementById('ea-file-inp').click()"
+           ondragover="dzOver(event,'ea-dropzone')" ondragleave="dzLeave('ea-dropzone')" ondrop="dzDrop(event,'ea')">
+        <input type="file" id="ea-file-inp" accept=".pdf,image/*" style="display:none" onchange="dzSelect(this,'ea')">
+        <div id="ea-file-ph" class="dz-ph"><div class="dz-icon">📁</div>
+          <div class="dz-label">${a.fileId?'Нажмите чтобы заменить файл':'Нажмите или перетащите файл'}</div>
+          <div class="dz-hint">PDF, JPG, PNG</div>
+        </div>
+        <div id="ea-file-prev" class="dz-prev" style="display:none"></div>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="saveEditAtt(${id})">💾 Сохранить</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Отмена</button>
+    </div>`);
+  // Show existing file if present
+  if(a.fileId && a.fileName) {
+    dzShowExisting('ea', a.fileName, a.fileType);
+  }
+}
+
+async function saveEditAtt(id){
+  const d=getData(); const i=d.attestation.findIndex(x=>x.id===id); if(i<0) return;
+  const a = d.attestation[i];
+  const btn = document.querySelector('#modal-body .btn-primary');
+  if(btn){ btn.disabled=true; btn.textContent='⏳ Сохранение...'; }
+
+  const updates = {
+    icon:    document.getElementById('ea-icon').value.trim(),
+    date:    document.getElementById('ea-date').value,
+    titleRu: document.getElementById('ea-tru').value.trim(),
+    titleKz: document.getElementById('ea-tkz').value.trim(),
+    descRu:  document.getElementById('ea-dru').value.trim(),
+    descKz:  document.getElementById('ea-dkz').value.trim(),
+  };
+
+  if(_dzFiles['ea']){
+    // New file uploaded — delete old, save new
+    if(a.fileId) await fsDelete(a.fileId).catch(()=>{});
+    const fid = `att-${id}-${Date.now()}`;
+    try{
+      await fsStore(fid, _dzFiles['ea']);
+      updates.fileId   = fid;
+      updates.fileName = _dzFiles['ea'].name;
+      updates.fileType = _dzFiles['ea'].type;
+    } catch(e){ toast('⚠️ Ошибка файла: '+e.message,'error'); }
+    delete _dzFiles['ea'];
+  } else if(!document.getElementById('ea-file-prev').innerHTML && a.fileId){
+    // File was cleared (dzClear called) — remove from store
+    await fsDelete(a.fileId).catch(()=>{});
+    updates.fileId = null; updates.fileName = null; updates.fileType = null;
+  }
+
+  d.attestation[i] = {...a, ...updates};
+  saveData(d); closeModal(); loadAttestation(); toast('✅ Документ обновлён!');
+}
+
+// ═══ PASSWORD ═══
+function changePassword(){
+  const d=getData();
+  const old=document.getElementById('pw-old').value;
+  const nw=document.getElementById('pw-new').value;
+  const conf=document.getElementById('pw-confirm').value;
+  if(old!==d.settings.adminPassword){ toast('⚠️ Неверный текущий пароль','error'); return; }
+  if(nw.length<4){ toast('⚠️ Пароль слишком короткий (мин. 4 символа)','error'); return; }
+  if(nw!==conf){ toast('⚠️ Пароли не совпадают','error'); return; }
+  d.settings.adminPassword=nw; saveData(d);
+  ['pw-old','pw-new','pw-confirm'].forEach(id=>document.getElementById(id).value='');
+  toast('✅ Пароль успешно изменён!');
+}
+function confirmReset(){
+  if(confirm('Вы уверены? Все данные будут сброшены к значениям по умолчанию!')){
+    if(confirm('Это действие нельзя отменить. Продолжить?')){
+      resetData(); loadAll(); toast('✅ Данные сброшены к значениям по умолчанию');
+    }
+  }
+}
+</script>
+</body>
+</html>
