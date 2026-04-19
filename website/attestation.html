@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Аттестация — NurAI</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+  <a href="index.html" class="logo">
+    <div class="logo-icon">🌟</div>
+    <div><div class="logo-name" id="h-name">NurAI</div><div class="logo-sub" id="h-sub">Детский сад</div></div>
+  </a>
+  <nav id="main-nav">
+    <a href="index.html">Главная</a><a href="about.html">О нас</a>
+    <a href="team.html">Педагоги</a><a href="gallery.html">Галерея</a>
+    <a href="attestation.html">Аттестация</a><a href="contacts.html">Контакты</a>
+  </nav>
+  <div class="header-right">
+    <div class="lang-switcher">
+      <button class="lang-btn active" data-lang="ru">RU</button>
+      <button class="lang-btn" data-lang="kz">KZ</button>
+    </div>
+    <button class="hamburger"><span></span><span></span><span></span></button>
+  </div>
+</header>
+
+<div class="page-banner">
+  <div class="breadcrumb"><a href="index.html" id="bc-home">Главная</a> <span>›</span> <span id="bc-cur">Аттестация</span></div>
+  <h1 id="ban-title">Аттестация и документы</h1>
+  <p id="ban-sub">Лицензии, сертификаты и официальные документы</p>
+</div>
+
+<section class="contacts-page" style="padding:80px 24px">
+  <div class="container">
+    <div class="section-header fade-in">
+      <div class="section-label" id="a-lbl">Документы</div>
+      <h2 class="section-title" id="a-title">Наши лицензии и сертификаты</h2>
+      <p class="section-subtitle" id="a-sub">Все документы соответствуют требованиям законодательства Республики Казахстан</p>
+    </div>
+    <div class="att-list" id="att-list"></div>
+    <div id="a-empty" class="empty-state" style="display:none">
+      <div class="icon">📄</div>
+      <p id="a-empty-txt">Документов пока нет</p>
+    </div>
+  </div>
+</section>
+
+<div></div>
+
+<footer>
+  <div class="footer-grid">
+    <div>
+      <div class="footer-logo logo"><div class="logo-icon">🌟</div><div>
+        <div class="logo-name" id="f-name">NurAI</div><div class="logo-sub" id="f-sub">Детский сад</div>
+      </div></div>
+      <p class="footer-desc" id="f-desc">Место, где каждый ребёнок раскрывает свои таланты.</p>
+    </div>
+    <div>
+      <div class="footer-heading" id="f-pages">Страницы</div>
+      <div class="footer-links" id="f-links"></div>
+    </div>
+    <div>
+      <div class="footer-heading" id="f-ch">Контакты</div>
+      <div class="footer-links">
+        <span id="f-addr" style="color:rgba(255,255,255,0.5)"></span>
+        <a id="f-phone" href="#"></a>
+        <a id="f-email" href="#"></a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span id="f-copy"></span>
+  </div>
+</footer>
+
+<script src="js/filestore.js"></script>
+<script src="js/data.js"></script>
+<script src="js/main.js"></script>
+<script>
+async function render() {
+  const d = getData(); const s = d.settings; const isKz = LANG === 'kz';
+  document.getElementById('h-name').textContent = s.siteName;
+  document.getElementById('h-sub').textContent  = isKz ? 'Балабақша' : 'Детский сад';
+  const navRu = ['Главная','О нас','Педагоги','Галерея','Аттестация','Контакты'];
+  const navKz = ['Басты бет','Біз туралы','Педагогтар','Галерея','Аттестация','Байланыс'];
+  document.querySelectorAll('#main-nav a').forEach((a,i) => a.textContent = isKz ? navKz[i] : navRu[i]);
+
+  document.getElementById('bc-home').textContent   = isKz ? 'Басты бет' : 'Главная';
+  document.getElementById('bc-cur').textContent    = isKz ? 'Аттестация' : 'Аттестация';
+  document.getElementById('ban-title').textContent = isKz ? 'Аттестация және құжаттар' : 'Аттестация и документы';
+  document.getElementById('ban-sub').textContent   = isKz ? 'Лицензиялар, сертификаттар және ресми құжаттар' : 'Лицензии, сертификаты и официальные документы';
+
+  document.getElementById('a-lbl').textContent   = isKz ? 'Құжаттар' : 'Документы';
+  document.getElementById('a-title').textContent  = isKz ? 'Лицензиялар мен сертификаттарымыз' : 'Наши лицензии и сертификаты';
+  document.getElementById('a-sub').textContent    = isKz ? 'Барлық құжаттар ҚР заңнамасының талаптарына сай келеді' : 'Все документы соответствуют требованиям законодательства Республики Казахстан';
+
+  const list = document.getElementById('att-list');
+  const empty = document.getElementById('a-empty');
+  if (!d.attestation.length) {
+    list.innerHTML = ''; empty.style.display = 'block';
+    document.getElementById('a-empty-txt').textContent = isKz ? 'Құжаттар жоқ' : 'Документов пока нет';
+  } else {
+    empty.style.display = 'none';
+
+    // Pre-load all stored files from IndexedDB
+    const storedURLs = {};
+    await Promise.all(d.attestation.map(async a => {
+      if (a.fileId) {
+        try { const r = await fsURL(a.fileId); if (r) storedURLs[a.id] = r; } catch(e) {}
+      }
+    }));
+
+    // Group by year
+    const yearMap = {};
+    d.attestation.forEach(a => {
+      const yr = a.year || 'Без года';
+      if (!yearMap[yr]) yearMap[yr] = [];
+      yearMap[yr].push(a);
+    });
+
+    // Sort years descending
+    const sortedYears = Object.keys(yearMap).sort((a, b) => b.localeCompare(a));
+
+    const viewLbl = isKz ? 'Қарау' : 'Смотреть';
+
+    list.innerHTML = sortedYears.map(yr => {
+      const cards = yearMap[yr].map(a => {
+        const fu = storedURLs[a.id];
+        let btnHtml = '';
+        if (fu) {
+          btnHtml = `<a href="${fu.url}" target="_blank"
+            style="background:var(--primary);color:white;padding:9px 20px;border-radius:50px;font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap;flex-shrink:0">${viewLbl}</a>`;
+        } else {
+          btnHtml = `<span
+            style="background:#D1D5DB;color:#9CA3AF;padding:9px 20px;border-radius:50px;font-size:13px;font-weight:700;white-space:nowrap;flex-shrink:0;cursor:default">${viewLbl}</span>`;
+        }
+        return `<div style="background:white;border-radius:14px;padding:20px 24px;display:flex;align-items:center;gap:16px;box-shadow:var(--shadow);border:1px solid var(--border)">
+          <div style="width:48px;height:48px;background:#FEE2E2;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">🗗</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:800;font-size:14px;line-height:1.3;color:var(--text)">${isKz ? a.titleKz : a.titleRu}</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:4px">PDF ${isKz ? 'Құжат' : 'Документ'}</div>
+          </div>
+          ${btnHtml}
+        </div>`;
+      }).join('');
+
+      return `<div style="margin-bottom:40px">
+        <h3 style="color:#14B8A6;font-size:22px;font-weight:900;display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          📅 ${yr}
+        </h3>
+        <div style="border-top:2px solid var(--border);margin-bottom:24px"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          ${cards}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // footer
+  document.getElementById('f-name').textContent  = s.siteName;
+  document.getElementById('f-sub').textContent   = isKz ? 'Балабақша' : 'Детский сад';
+  document.getElementById('f-desc').textContent  = isKz ? 'Әр бала өз талантын ашатын орын.' : 'Место, где каждый ребёнок раскрывает свои таланты.';
+  document.getElementById('f-pages').textContent = isKz ? 'Беттер' : 'Страницы';
+  document.getElementById('f-ch').textContent    = isKz ? 'Байланыс' : 'Контакты';
+  document.getElementById('f-addr').textContent  = isKz ? s.addressKz : s.address;
+  document.getElementById('f-phone').textContent = s.phone; document.getElementById('f-phone').href = `tel:${s.phone.replace(/\s/g,'')}`;
+  document.getElementById('f-email').textContent = s.email; document.getElementById('f-email').href = `mailto:${s.email}`;
+  document.getElementById('f-copy').textContent  = `© 2026 ${isKz ? `Балабақша «${s.siteName}». Барлық құқықтар қорғалған.` : `Детский сад «${s.siteName}». Все права защищены.`}`;
+  const nl = isKz ? ['Басты бет','Біз туралы','Педагогтар','Галерея','Аттестация','Байланыс'] : ['Главная','О нас','Педагоги','Галерея','Аттестация','Контакты'];
+  const hr = ['index.html','about.html','team.html','gallery.html','attestation.html','contacts.html'];
+  document.getElementById('f-links').innerHTML = nl.map((n,i)=>`<a href="${hr[i]}">${n}</a>`).join('');
+}
+
+function openFileModal(url) {
+  let m = document.getElementById('file-modal');
+  if (!m) {
+    m = document.createElement('div');
+    m.id = 'file-modal';
+    m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+    m.innerHTML = `<div style="position:relative;max-width:90vw;max-height:90vh">
+      <img id="file-modal-img" style="max-width:90vw;max-height:85vh;border-radius:12px;object-fit:contain">
+      <button onclick="document.getElementById('file-modal').remove()"
+        style="position:fixed;top:20px;right:20px;width:44px;height:44px;background:rgba(255,255,255,0.15);
+               border:none;border-radius:50%;color:white;font-size:20px;cursor:pointer">✕</button>
+    </div>`;
+    m.addEventListener('click', e => { if (e.target === m) m.remove(); });
+    document.body.appendChild(m);
+  }
+  document.getElementById('file-modal-img').src = url;
+}
+</script>
+</body>
+</html>

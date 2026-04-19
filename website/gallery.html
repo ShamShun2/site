@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Галерея — NurAI</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+  <a href="index.html" class="logo">
+    <div class="logo-icon">🌟</div>
+    <div><div class="logo-name" id="h-name">NurAI</div><div class="logo-sub" id="h-sub">Детский сад</div></div>
+  </a>
+  <nav id="main-nav">
+    <a href="index.html">Главная</a><a href="about.html">О нас</a>
+    <a href="team.html">Педагоги</a><a href="gallery.html">Галерея</a>
+    <a href="attestation.html">Аттестация</a><a href="contacts.html">Контакты</a>
+  </nav>
+  <div class="header-right">
+    <div class="lang-switcher">
+      <button class="lang-btn active" data-lang="ru">RU</button>
+      <button class="lang-btn" data-lang="kz">KZ</button>
+    </div>
+    <button class="hamburger"><span></span><span></span><span></span></button>
+  </div>
+</header>
+
+<div class="page-banner">
+  <div class="breadcrumb"><a href="index.html" id="bc-home">Главная</a> <span>›</span> <span id="bc-cur">Галерея</span></div>
+  <h1 id="ban-title">Галерея</h1>
+  <p id="ban-sub">Яркие моменты из жизни нашего детского сада</p>
+</div>
+
+<section class="gallery-section" style="background:white">
+  <div class="container">
+    <div class="section-header fade-in">
+      <div class="section-label" id="g-lbl">Фотографии</div>
+      <h2 class="section-title" id="g-title">Наша жизнь в фото</h2>
+      <p class="section-subtitle" id="g-sub">Каждый день — новые воспоминания</p>
+    </div>
+    <div class="gal-filters" id="gal-filters" style="display:flex;gap:12px;justify-content:center;margin-bottom:36px;flex-wrap:wrap"></div>
+    <div class="gallery-grid" id="gallery-grid" style="grid-template-columns:repeat(auto-fill,minmax(300px,1fr))"></div>
+    <div id="g-empty" class="empty-state" style="display:none">
+      <div class="icon">🖼️</div>
+      <p id="g-empty-txt">Фотографий пока нет</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-grid">
+    <div>
+      <div class="footer-logo logo"><div class="logo-icon">🌟</div><div>
+        <div class="logo-name" id="f-name">NurAI</div><div class="logo-sub" id="f-sub">Детский сад</div>
+      </div></div>
+      <p class="footer-desc" id="f-desc">Место, где каждый ребёнок раскрывает свои таланты.</p>
+    </div>
+    <div>
+      <div class="footer-heading" id="f-pages">Страницы</div>
+      <div class="footer-links" id="f-links"></div>
+    </div>
+    <div>
+      <div class="footer-heading" id="f-ch">Контакты</div>
+      <div class="footer-links">
+        <span id="f-addr" style="color:rgba(255,255,255,0.5)"></span>
+        <a id="f-phone" href="#">+7 777 046 46 41</a>
+        <a id="f-email" href="#">kazenova.gulnur87@mail.ru</a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span id="f-copy"></span>
+  </div>
+</footer>
+
+<div id="lightbox" class="lightbox">
+  <button class="lb-close">✕</button>
+  <img src="" alt="Фото">
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/main.js"></script>
+<script>
+function render() {
+  const d = getData(); const s = d.settings; const isKz = LANG === 'kz';
+  document.getElementById('h-name').textContent = s.siteName;
+  document.getElementById('h-sub').textContent  = isKz ? 'Балабақша' : 'Детский сад';
+  const navRu = ['Главная','О нас','Педагоги','Галерея','Аттестация','Контакты'];
+  const navKz = ['Басты бет','Біз туралы','Педагогтар','Галерея','Аттестация','Байланыс'];
+  document.querySelectorAll('#main-nav a').forEach((a,i) => a.textContent = isKz ? navKz[i] : navRu[i]);
+
+  document.getElementById('bc-home').textContent  = isKz ? 'Басты бет' : 'Главная';
+  document.getElementById('bc-cur').textContent   = isKz ? 'Галерея' : 'Галерея';
+  document.getElementById('ban-title').textContent = isKz ? 'Галерея' : 'Галерея';
+  document.getElementById('ban-sub').textContent   = isKz ? 'Балабақшамыздың жарқын сәттері' : 'Яркие моменты из жизни нашего детского сада';
+
+  document.getElementById('g-lbl').textContent  = isKz ? 'Суреттер' : 'Фотографии';
+  document.getElementById('g-title').textContent = isKz ? 'Суреттердегі өміріміз' : 'Наша жизнь в фото';
+  document.getElementById('g-sub').textContent   = isKz ? 'Күн сайын жаңа естеліктер' : 'Каждый день — новые воспоминания';
+
+  const grid = document.getElementById('gallery-grid');
+  const empty = document.getElementById('g-empty');
+  const filtersEl = document.getElementById('gal-filters');
+
+  if (!d.gallery.length) {
+    grid.innerHTML = '';
+    filtersEl.innerHTML = '';
+    empty.style.display = 'block';
+    document.getElementById('g-empty-txt').textContent = isKz ? 'Суреттер жоқ' : 'Фотографий пока нет';
+  } else {
+    empty.style.display = 'none';
+    const dlLbl = isKz ? 'Жүктеу' : 'Скачать';
+
+    // Build grid items with data-cat attribute
+    grid.innerHTML = d.gallery.map(g => {
+      const cat = g.category || 'Общее';
+      const cap = (isKz ? g.captionKz : g.captionRu).replace(/'/g, "\\'");
+      return `<div class="gallery-item fade-in" data-full="${g.url}" data-cat="${cat}">
+        <img src="${g.url}" alt="${isKz ? g.captionKz : g.captionRu}" loading="lazy"
+             onerror="this.parentElement.style.background='#eee'">
+        <div class="gallery-overlay">
+          <div class="gallery-overlay-btns">
+            <button class="gal-btn gal-btn-view" title="Просмотр" onclick="event.stopPropagation()">🔍</button>
+            <button class="gal-btn gal-btn-dl" title="${dlLbl}"
+              onclick="event.stopPropagation(); dlPhoto('${g.url}','${cap}.jpg')">⬇️</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+
+    // Build filter buttons
+    const allLbl = isKz ? 'Барлық фото' : 'Все фото';
+    const cats = [''].concat([...new Set(d.gallery.map(g => g.category || 'Общее'))]);
+    filtersEl.innerHTML = cats.map((c, i) => {
+      const lbl = c === '' ? allLbl : c;
+      const isActive = i === 0;
+      return `<button onclick="filterGallery('${c}',this)"
+        style="padding:10px 24px;border-radius:50px;font-weight:700;cursor:pointer;font-family:inherit;font-size:14px;transition:all .2s;
+               background:${isActive ? 'var(--primary)' : 'white'};
+               color:${isActive ? 'white' : 'var(--primary)'};
+               border:2px solid var(--primary)">${lbl}</button>`;
+    }).join('');
+  }
+
+  // footer
+  document.getElementById('f-name').textContent  = s.siteName;
+  document.getElementById('f-sub').textContent   = isKz ? 'Балабақша' : 'Детский сад';
+  document.getElementById('f-desc').textContent  = isKz ? 'Әр бала өз талантын ашатын орын.' : 'Место, где каждый ребёнок раскрывает свои таланты.';
+  document.getElementById('f-pages').textContent = isKz ? 'Беттер' : 'Страницы';
+  document.getElementById('f-ch').textContent    = isKz ? 'Байланыс' : 'Контакты';
+  document.getElementById('f-addr').textContent  = isKz ? s.addressKz : s.address;
+  document.getElementById('f-phone').textContent = s.phone; document.getElementById('f-phone').href = `tel:${s.phone.replace(/\s/g,'')}`;
+  document.getElementById('f-email').textContent = s.email; document.getElementById('f-email').href = `mailto:${s.email}`;
+  document.getElementById('f-copy').textContent  = `© 2026 ${isKz ? `Балабақша «${s.siteName}». Барлық құқықтар қорғалған.` : `Детский сад «${s.siteName}». Все права защищены.`}`;
+  const nl = isKz ? ['Басты бет','Біз туралы','Педагогтар','Галерея','Аттестация','Байланыс'] : ['Главная','О нас','Педагоги','Галерея','Аттестация','Контакты'];
+  const hr = ['index.html','about.html','team.html','gallery.html','attestation.html','contacts.html'];
+  document.getElementById('f-links').innerHTML = nl.map((n,i)=>`<a href="${hr[i]}">${n}</a>`).join('');
+
+  // lightbox on view button click only
+  const lb = document.getElementById('lightbox');
+  const lbImg = lb.querySelector('img');
+  document.querySelectorAll('.gal-btn-view').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const item = btn.closest('.gallery-item');
+      lbImg.src = item.dataset.full || item.querySelector('img').src;
+      lb.classList.add('open');
+    });
+  });
+}
+
+function filterGallery(cat, btn) {
+  // Update button styles
+  document.querySelectorAll('#gal-filters button').forEach(b => {
+    b.style.background = 'white';
+    b.style.color = 'var(--primary)';
+  });
+  btn.style.background = 'var(--primary)';
+  btn.style.color = 'white';
+
+  // Show/hide items
+  document.querySelectorAll('#gallery-grid .gallery-item').forEach(item => {
+    if (cat === '' || item.dataset.cat === cat) {
+      item.style.display = '';
+    } else {
+      item.style.display = 'none';
+    }
+  });
+}
+
+async function dlPhoto(url, filename) {
+  try {
+    const r = await fetch(url);
+    const blob = await r.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename || 'photo.jpg';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+  } catch {
+    window.open(url, '_blank');
+  }
+}
+</script>
+</body>
+</html>
